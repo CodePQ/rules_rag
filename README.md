@@ -1,31 +1,125 @@
-# RAG System with Ollama
-This project is uses a Retrieval-Augmented Generation (RAG) system that reads ruling documents (game rules or legal documents) and provides an explanation with references to the supporting documents as to why a situation leads to a certain outcome. 
+# MTG Rules Expert RAG System
 
-## What This Does
-- Loads rule/law documents
-- Breaks document into chunks
-- Stores chunks into a vector database
-- Retrieves releveant information based on user question
-- Uses a local LLM to generate an explanation
+A Retrieval-Augmented Generation (RAG) system designed specifically to
+interpret and explain rulings in **Magic: The Gathering** using the
+official Comprehensive Rules and card data.
 
-## Why I Built It
-I wanted to build a system that can explain decisions using actual rules as references.
-Instead of guessing, the model retrieves relevant law sections and uses them to justify the answer.
+This system retrieves relevant rule sections, constructs a structured
+prompt, and generates a citation-backed explanation using a local LLM
+powered by **Ollama**.
 
-This is the foundation for building more advanced reasoning systems later.
+------------------------------------------------------------------------
 
-## How It Works
-1. Documents are added to the system
-2. The documents are converted into embeddings
-3. When a user asks a question, similar information sections are retrieved
-4. Those information sections are sent to Ollama
-5. Ollama generates an explanation using the retrieved rules
+## Project Purpose
 
-## How To Run It
-```python rules_rag.py```
+Magic: The Gathering's Comprehensive Rules exceed 300 pages and contain
+highly technical, hierarchical, and conditional language.
 
-## Next Steps
-- Add better citation formatting
-- Improve rule conflict detection
-- Add structured reasoning
-- Build a UI
+This project aims to:
+
+-   Retrieve the exact rule sections relevant to a gameplay situation
+-   Generate structured explanations grounded in official rules
+-   Provide clear rule citations
+-   Reduce hallucination through retrieval grounding
+-   Serve as a scalable foundation for judge-level reasoning tools
+
+This is an MTG-focused system first, designed for future expansion.
+
+------------------------------------------------------------------------
+
+## System Architecture
+
+Phase 1 Architecture:
+
+1.  Rule Document Ingestion\
+2.  Text Chunking (preserving rule numbers like 603.1, 704.5a)\
+3.  Embedding Generation (local embedding model)\
+4.  Vector Storage (FAISS or Chroma)\
+5.  Query → Retrieval → Prompt Construction\
+6.  Ollama Response Generation\
+7.  Citation Formatting
+
+------------------------------------------------------------------------
+
+## Tech Stack
+
+-   Python\
+-   Ollama (local LLM runtime)\
+-   FAISS or Chroma (vector database)\
+-   Local embedding model\
+-   Structured rule parsing
+
+------------------------------------------------------------------------
+
+## Current Milestones
+
+### Milestone 1: Basic RAG Prototype (CLI)
+
+-   Download and clean Comprehensive Rules text
+-   Parse rule sections with numbering preserved
+-   Chunk rules into structured segments
+-   Generate embeddings
+-   Store embeddings in vector database
+-   Implement top-k retrieval
+-   Construct structured prompt template
+-   Generate explanation with citations
+
+------------------------------------------------------------------------
+
+### Milestone 2: Card Context Integration
+
+-   Integrate card data (Scryfall or local JSON)
+-   Parse oracle text
+-   Embed card data separately
+-   Merge rule + card retrieval
+-   Support structured board state input (JSON)
+-   Handle multi-card interactions
+
+------------------------------------------------------------------------
+
+### Milestone 3: Web Interface
+
+-   FastAPI backend wrapper
+-   Custom frontend (React or Next.js)
+-   Card search + board state builder
+-   Source panel for retrieved rule snippets
+-   Confidence scoring
+-   Dark MTG-themed UI
+
+------------------------------------------------------------------------
+
+### Milestone 4: Judge-Level Expansion
+
+-   Structured reasoning output
+-   Rule hierarchy awareness
+-   Counterfactual explanations ("Why not?" mode)
+-   Accuracy validation against known rulings
+-   Logging and retrieval diagnostics
+
+------------------------------------------------------------------------
+
+## Evaluation Metrics
+
+-   Retrieval accuracy
+-   Citation correctness
+-   Latency target: \< 3 seconds (local)
+-   Manual validation against official rulings
+-   Hallucination frequency
+
+------------------------------------------------------------------------
+
+## Roadmap
+
+-   Improve citation formatting
+-   Implement rule conflict detection
+-   Add structured reasoning layers
+-   Expand card interaction depth
+-   Build scalable web deployment
+-   Add judge-mode advanced reasoning
+
+------------------------------------------------------------------------
+
+## Author
+
+Cody Paquette\
+Data Science \| RAG Systems \| Rule-Based AI Architectures
