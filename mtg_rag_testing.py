@@ -1,29 +1,48 @@
+import os
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
 from langchain_community.vectorstores import SKLearnVectorStore
 from langchain_ollama import ChatOllama, OllamaEmbeddings
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-# Load in rules file
-print("Reading files...")
-with open('complete_ruleset/MagicCompRules_20260116.txt', 'r', encoding='utf-8') as file:
-    rules = file.read()
-print("Files loaded.")
+# Directory containing data files
+data_folder = "data/"
+all_doc_splits = []
 
 # Initialize a text splitter with specified chunk size and overlap
-print("Splitting files into chunks...")
 text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-    chunk_size=200, chunk_overlap=50
+    chunk_size=150, chunk_overlap=20
 )
-# Split the documents into chunks
-doc_splits = text_splitter.split_text(rules)
-print("Chunks generated.")
 
+print("Reading and splitting files...")
+
+# Read each file in 'data/'
+for filename in os.listdir(data_folder):
+    if filename.endswith(".txt"):
+        file_path = os.path.join(data_folder, filename)
+
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+
+            # Create chunks
+            chunks = text_splitter.split_text(content)
+
+            for chunk in chunks:
+                new_doc = Document(
+                    page_content=chunk,
+                    metadata={"source": filename,
+                              "topic": filename.replace(".txt", "")}
+                )
+
+                all_doc_splits.append(new_doc)
+
+print(f"Total chunks generated: {len(all_doc_splits)}")
 
 # Create embeddings for documents and store them in a vector store
 print("Embedding chunks...")
 vectorstore = SKLearnVectorStore.from_texts(
-    texts=doc_splits,
+    texts=all_doc_splits,
     embedding=OllamaEmbeddings(model="nomic-embed-text"),
 )
 print("Chunks embeded.")
@@ -47,7 +66,7 @@ prompt = PromptTemplate.from_template(
 # Initialize the LLM with Llama 3.1 model
 llm = ChatOllama(
     model="llama3.1",
-    temperature=0.8,
+    temperature=0.5,
 )
 
 # Create a chain combining the prompt template and LLM
