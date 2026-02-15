@@ -1,0 +1,87 @@
+MTG RAG Test Questions
+
+Basic Rules Tests
+
+1.  If a creature has summoning sickness, can it block?
+2.  When exactly do state-based actions check for lethal damage?
+3.  What happens if a player attempts to draw from an empty library?
+4.  Can a player respond to a mana ability?
+5.  When do triggered abilities go on the stack?
+
+Stack & Priority Tests
+
+6.  Player A casts Lightning Bolt targeting Player B. In response,
+    Player B casts Healing Salve targeting themselves. What happens?
+7.  A player casts Counterspell targeting a spell. In response, the
+    controller of the original spell casts another Counterspell
+    targeting the first Counterspell. What resolves?
+8.  If both players pass priority on an empty stack during the main
+    phase, what happens?
+9.  A creature with an “enters the battlefield” trigger enters the
+    battlefield at the same time as another permanent that affects it.
+    Does the trigger still happen?
+10. Can a player activate an ability while another spell is resolving?
+
+Replacement Effects & Prevention
+
+11. If a creature would be dealt lethal damage but has an effect that
+    says “If this creature would die, exile it instead,” what happens?
+12. Two replacement effects both want to modify how damage is dealt. Who
+    chooses which applies first?
+13. If a player controls an effect that doubles damage and another that
+    prevents damage, how is the final damage calculated?
+14. If a creature would enter the battlefield with counters but an
+    effect says it enters without counters, what happens?
+
+Combat Edge Cases
+
+15. A 2/2 creature with First Strike blocks a 3/3 creature without First
+    Strike. What happens?
+16. A creature with Double Strike attacks and is blocked by a 2/2. Walk
+    through damage step by step.
+17. If a creature gains Deathtouch after damage is assigned but before
+    damage is dealt, what happens?
+18. If all blockers are removed from combat before damage, does the
+    attacking creature deal damage?
+19. If a creature becomes tapped during combat, does it remain
+    attacking?
+
+State-Based Action Stress Tests
+
+20. A creature is a 0/0 but has a static ability giving it +1/+1. Does
+    it survive?
+21. A player controls two legendary permanents with the same name. What
+    happens?
+22. A planeswalker has 0 loyalty counters. When is it put into the
+    graveyard?
+23. A creature has lethal damage marked on it but gains indestructible
+    before SBAs check. What happens?
+
+Ambiguity / Judge Call Tests
+
+24. A player says “move to combat” and the opponent says “before combat, I cast…” Is that legal?
+25. A spell says “target creature.” The only creature on the battlefield
+    has hexproof from that player. Can they cast it?
+26. Two triggers controlled by different players trigger at the same
+    time. Who chooses the order?
+27. A player forgets a mandatory trigger. What happens under the rules?
+28. A permanent changes controllers. What happens to Auras attached to it?
+
+Layer System Tests
+
+29. A 2/2 creature gets +2/+2 from one effect and becomes a 1/1 from
+    another effect. What is its final power and toughness?
+30. A creature becomes a copy of another creature but also has a +1/+1
+    counter. What is its final power/toughness?
+31. A creature becomes a land. Is it still a creature?
+32. A creature loses all abilities but has counters that grant
+    abilities. What happens?
+
+Ultra Stress Tests
+
+33. A creature with a replacement effect that modifies how it dies is
+    dealt lethal damage at the same time state-based actions are checked
+    while another trigger would trigger from it dying. Walk through
+    everything in order.
+34. Multiple creatures die simultaneously and several “whenever a
+    creature dies” triggers happen. How are they ordered?

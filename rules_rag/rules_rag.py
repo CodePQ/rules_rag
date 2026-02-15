@@ -1,12 +1,14 @@
+import ingest
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import SKLearnVectorStore
+from langchain_community.vectorstores import Chroma
 from langchain_ollama import ChatOllama, OllamaEmbeddings
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
 
 # Load in rules file
 print("Reading files...")
-with open('complete_ruleset/MagicCompRules_20260116.txt', 'r', encoding='utf-8') as file:
+with open('rules_rag/complete_ruleset/MagicCompRules_20260116.txt', 'r', encoding='utf-8') as file:
     rules = file.read()
 print("Files loaded.")
 
@@ -17,26 +19,59 @@ print("Chunks generated.")
 
 # Create embeddings for documents and store them in a vector store
 print("Embedding chunks...")
-vectorstore = SKLearnVectorStore.from_texts(
-    texts=rules_list,
-    embedding=OllamaEmbeddings(model="nomic-embed-text"),
-)
+embeddings = OllamaEmbeddings(model="nomic-embed-text")
 print("Chunks embeded.")
+
+vectorstore = ingest.get_or_build_vectorstore(rules_list, embeddings)
 
 retriever = vectorstore.as_retriever(k=5)
 
 prompt = PromptTemplate.from_template(
     """
-    You are an expert in the rules of Magic the Gathering.
-    Use the following documents to answer the question.
-    If you don't know the answer, just say that you don't know.
-    When giving an answer, provide the ultimate ruling first. 
-    Then, list out the rules and their contents in a list fashion so the user knows where the information was referenced from. 
-    Keep the ruling to the question compact and concise. 
-    Make the list of rules easy to read.:
-    Question: {question}
-    Documents: {documents}
-    Answer:
+    You are an expert-level Magic: The Gathering rules judge.
+
+    You answer questions strictly using the provided context from the official Comprehensive Rules document.
+    You do not rely on outside knowledge.
+    If the answer is not fully supported by the provided rules context, you must say:
+    "I cannot determine the ruling from the provided rules context."
+
+    Your task:
+    Given a game scenario or rules question, determine the correct ruling using only the provided rules excerpts.
+
+    Instructions:
+
+    1. Carefully analyze the scenario.
+    2. Identify which rules apply.
+    3. Quote the relevant rule numbers and text.
+    4. Explain step-by-step how those rules apply to the situation.
+    5. Provide a clear final ruling.
+
+    If the scenario is ambiguous or missing required details:
+    - Explicitly state what information is missing.
+    - Explain how the ruling could change depending on that missing information.
+
+    Formatting Requirements:
+
+    Answer in this structure:
+
+    ---
+    **Relevant Rules**
+    - Rule [number]: "Quoted rule text"
+    - Rule [number]: "Quoted rule text"
+
+    **Analysis**
+    Step-by-step explanation applying the rules to the scenario.
+
+    **Final Ruling**
+    A clear, concise statement of what happens in the game.
+
+    ---
+
+    Context from the Comprehensive Rules:
+    {context}
+
+    Question:
+    {question}
     """
 )
 
@@ -47,39 +82,15 @@ llm = ChatOllama(
 )
 
 # Create a chain combining the prompt template and LLM
-rag_chain = prompt | llm | StrOutputParser()
+rag_chain = {"context": retriever, "question": RunnablePassthrough()
+             } | prompt | llm | StrOutputParser()
 
-# Define the RAG application class
-
-
-class RAGApplication:
-    def __init__(self, retriever, rag_chain):
-        self.retriever = retriever
-        self.rag_chain = rag_chain
-
-    def run(self, question):
-        # Retrieve relevant documents
-        documents = self.retriever.invoke(question)
-        # Extract content from retrieved documents
-        doc_texts = "\\n".join([doc.page_content for doc in documents])
-        # Get the answer from the language model
-        answer = self.rag_chain.invoke(
-            {"question": question, "documents": doc_texts})
-        return answer
-
-
-# Initialize the RAG application
-print("Initializing RAG...")
-rag_application = RAGApplication(retriever, rag_chain)
-print("RAG initialized.\n")
 running = True
 while running:
-    # Example usage
     question = input("Enter quesiton: ")
     if question == 'quit':
         running = False
     else:
-        answer = rag_application.run(question)
+        answer = rag_chain.invoke(question)
         print("Answer:", answer)
     print(150*"=")
-    print("\n")
