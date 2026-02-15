@@ -43,7 +43,7 @@ Phase 1 Architecture:
 
 ## Tech Stack
 
--   Python\
+-   Python
 -   Ollama (local LLM runtime)
 -   FAISS or Chroma (vector database)
 -   Local embedding model
