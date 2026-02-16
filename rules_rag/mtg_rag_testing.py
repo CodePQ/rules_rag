@@ -1,37 +1,28 @@
-import ingest_testing
-from langchain_community.document_loaders.csv_loader import CSVLoader
-from langchain_core.documents import Document
+import pandas as pd
+import ingest
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_core.documents import Document
+from langchain_community.vectorstores import SKLearnVectorStore
 from langchain_ollama import ChatOllama, OllamaEmbeddings
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 
-# Load in rules file
-print("Reading files...")
-csv_file_path = "rules_rag/data/cleaned_cards.csv"
-loader = CSVLoader(file_path=csv_file_path, encoding='utf-8')
-documents = loader.load()
+cards_df = pd.read_csv('rules_rag/data/cleaned_cards.csv')
 
+# Directory containing data files
 with open('rules_rag/data/MagicCompRules_20260116.txt', 'r', encoding='utf-8') as file:
     rules = file.read()
-rules_list = rules.split('\n\n')
+    rules_list = rules.split('\n\n')
 
-for rule in rules_list:
-    doc = Document(page_content=rule)
-    documents.append(doc)
-
-print("Files loaded.")
+embedding = OllamaEmbeddings(model="nomic-embed-text")
 
 # Create embeddings for documents and store them in a vector store
 print("Embedding chunks...")
-embeddings = OllamaEmbeddings(model="nomic-embed-text")
+vectorstore = ingest.get_or_build_vectorstore(rules_list, embedding)
 print("Chunks embeded.")
 
-vectorstore = ingest_testing.get_or_build_vectorstore(documents, embeddings)
-
-retriever = vectorstore.as_retriever(k=10)
+retriever = vectorstore.as_retriever(k=5)
 
 prompt = PromptTemplate.from_template(
     """
@@ -61,7 +52,6 @@ prompt = PromptTemplate.from_template(
 
     Answer in this structure:
 
-    ---
     **Relevant Rules**
     - Rule [number]: "Quoted rule text"
     - Rule [number]: "Quoted rule text"
@@ -71,8 +61,6 @@ prompt = PromptTemplate.from_template(
 
     **Final Ruling**
     A clear, concise statement of what happens in the game.
-
-    ---
 
     Context from the Comprehensive Rules:
     {context}
@@ -92,9 +80,29 @@ llm = ChatOllama(
 rag_chain = {"context": retriever, "question": RunnablePassthrough()
              } | prompt | llm | StrOutputParser()
 
+
+def get_card_info(card_names, cards_df):
+    card_input_data = []
+    for name in card_names:
+        card_data = cards_df[cards_df['name'] == name].iloc[0].to_dict()
+
+        card_info = []
+        wanted_card_info = ['name', 'oracle_text']
+        for wanted_info in wanted_card_info:
+            information = card_data.get(wanted_info)
+            card_info.append(information)
+        card_data = f"{card_info[0]}: {card_info[1]}"
+        card_input_data.append(card_data)
+
+    return card_input_data
+
+
 running = True
 while running:
-    question = input("Enter quesiton: ")
+    cards_input = input("Enter cards (separate with '/'): ")
+    cards_list = cards_input.split('/')
+    cards = get_card_info(cards_list, cards_df)
+    question = f"How could these cards interact with each other? Cards: {cards}"
     if question == 'quit':
         running = False
     else:

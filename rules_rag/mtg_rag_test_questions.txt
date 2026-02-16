@@ -85,3 +85,10 @@ Ultra Stress Tests
     everything in order.
 34. Multiple creatures die simultaneously and several “whenever a
     creature dies” triggers happen. How are they ordered?
+
+TEST CARD COMBOS:
+1. Sol Ring, Manifold Key
+2. Doubling Season, Teferi, Hero of Dominaria
+3. Blood Artist, Zulaport Cutthroat, Viscera Seer
+4. Stuffy Doll, Blasphemous Act
+5. Solemnity, Phyrexian Unlife
